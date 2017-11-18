@@ -4,6 +4,7 @@ import uuid
 import re
 import argparse
 import requests
+import subprocess
 
 from bz2 import BZ2Decompressor
 
@@ -99,6 +100,15 @@ def main(args):
                 print(str(count) + ' lines processed')
             fout.write(' '.join(regex_remove_tag.sub(' ', line).translate(translation_table).split()) if len(line) > 100 else '')
             count += 1
+
+    if mix_sentences:
+        if os.name == 'posix':
+            print('Shuffling file!')
+            # For this, I kneeled before the power of shuf, obviously this won't work on Windows
+            # shuf [output_file] -o [random_output_file]
+            subprocess.call(['shuf', output_file, '-o', 'random_' + output_file])
+        else:
+            print('Mix sentences is only available on Posix systems!')
 
     # Finally we delete the file!
     print('Cleaning up')
