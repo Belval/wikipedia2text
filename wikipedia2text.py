@@ -29,7 +29,7 @@ def parse_arguments():
         type=str,
         nargs="?",
         help="The languages to download and use, with 2 char code (en,fr,de,es) separated by commas",
-        default="en"
+        default=""
     )
 
     parser.add_argument(
@@ -44,7 +44,39 @@ def parse_arguments():
         "--mix_sentences",
         action="store_true",
         help="Define if the lines should be shuffled to allow for a more uniform distribution",
-        default=True
+        default=False
+    )
+
+    parser.add_argument(
+        "-u",
+        "--unique",
+        action="store_true",
+        help="Define if each line should be unique",
+        default=False
+    )
+
+    parser.add_argument(
+        "-d",
+        "--keep_digits",
+        action="store_true",
+        help="Define if we keep the digits. (using RegEx \\b\d*\\b)",
+        default=False
+    )
+
+    parser.add_argument(
+        "-s",
+        "--split_sentences",
+        action="store_true",
+        help="Define if we split the lines on '.' to get one sentence per line",
+        default=False
+    )
+
+    parser.add_argument(
+        "-ml",
+        "--min_length",
+        type=int,
+        help="Define a minimum length for a line.",
+        default=100
     )
 
     return parser.parse_args()
@@ -59,12 +91,15 @@ def main(args):
     input_files = args.input_files if args.input_files is not None else []
     output_file = args.output_file
     mix_sentences = args.mix_sentences
-    download_languages = args.download_languages.split(',') if args.download_languages is not None else []
-
-    print(download_languages)
+    download_languages = args.download_languages.split(',') if len(args.download_languages) > 0 else None
+    keep_digits = args.keep_digits
+    split_sentences = args.split_sentences
+    min_length = args.min_length
+    unique = args.unique
 
     regex_remove_tag = re.compile(r"<.*?>")
-    char_to_remove = ['{', '}', '[', ']', '<', '>', '=', '&', '"', '(', ')', '|', '/', '\\', '*', '\'', '#', ':']
+    regex_remove_numbers = re.compile(r"\b\d*\b")
+    char_to_remove = ['{', '}', '[', ']', '<', '>', '=', '&', '"', '(', ')', '|', '/', '\\', '*', '\'', '#', ':', ';', ',']
     translation_table = str.maketrans(''.join(char_to_remove), ''.join([' '] * len(char_to_remove)))
 
     if download_languages is not None and len(download_languages) > 0:
@@ -96,19 +131,35 @@ def main(args):
     with open(output_file, 'w') as fout, open(output_file + '_decompressed', 'r') as fin:
         count = 0
         for line in fin:
-            if count % 10000 == 0:
+            if count % 100000 == 0:
                 print(str(count) + ' lines processed')
-            fout.write(' '.join(regex_remove_tag.sub(' ', line).translate(translation_table).split()) if len(line) > 100 else '')
+            line = regex_remove_tag.sub(' ', line)
+            if not keep_digits:
+                line = regex_remove_numbers.sub(' ', line)
+            line = ' '.join(line.translate(translation_table).split())
+            if split_sentences:
+                for subline in line.split('.'):
+                    fout.write(subline + '\n' if len(subline) > min_length else '')
+            else:
+                fout.write(line + '\n' if len(line) > min_length else '')
             count += 1
 
     if mix_sentences:
         if os.name == 'posix':
             print('Shuffling file!')
-            # For this, I kneeled before the power of shuf, obviously this won't work on Windows
-            # shuf [output_file] -o [random_output_file]
-            subprocess.call(['shuf', output_file, '-o', 'random_' + output_file])
+            subprocess.call(['LC_ALL=C', 'sort', '-R', output_file, '>', 'shuffled_' + output_file])
+            os.rename('shuffled_' + output_file, output_file)
         else:
-            print('Mix sentences is only available on Posix systems!')
+            print('Mix sentences is only available on Posix systems because it uses the sort command')
+
+    if unique:
+        if os.name == 'posix':
+            print('Removing duplicates!')
+            subprocess.call(['uniq', output_file, 'unique_' + output_file])
+            os.rename('unique_' + output_file, output_file)
+        else:
+            print('Unique is only available on Posix systems because it uses the uniq command')
+
 
     # Finally we delete the file!
     print('Cleaning up')
