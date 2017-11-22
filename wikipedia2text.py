@@ -119,7 +119,7 @@ def main(args):
     # We start by decompressing the file
     print('Starting decompression')
     for input_file in input_files:
-        with open(output_file + '_decompressed', 'wb') as fout, open(input_file, 'rb') as fin:
+        with open(output_file + '_decompressed', 'ab') as fout, open(input_file, 'rb') as fin:
             decompressor = BZ2Decompressor()
             for i, data in enumerate(iter(lambda : fin.read(1000 * 1024), b'')):
                 if i % 100 == 0:
@@ -147,7 +147,8 @@ def main(args):
     if mix_sentences:
         if os.name == 'posix':
             print('Shuffling file!')
-            subprocess.call(['LC_ALL=C', 'sort', '-R', output_file, '>', 'shuffled_' + output_file])
+            os.environ['LC_ALL'] = 'C'
+            subprocess.call(['sort', '-R', output_file, '>', 'shuffled_' + output_file])
             os.rename('shuffled_' + output_file, output_file)
         else:
             print('Mix sentences is only available on Posix systems because it uses the sort command')
