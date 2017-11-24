@@ -148,23 +148,23 @@ def main(args):
         if os.name == 'posix':
             print('Shuffling file!')
             os.environ['LC_ALL'] = 'C'
-            subprocess.call(['sort', '-R', output_file, '>', 'shuffled_' + output_file])
-            os.rename('shuffled_' + output_file, output_file)
+            subprocess.call('sort -R {} > shuffled_{}'.format(output_file, output_file), shell=True)
         else:
             print('Mix sentences is only available on Posix systems because it uses the sort command')
 
     if unique:
         if os.name == 'posix':
             print('Removing duplicates!')
-            subprocess.call(['uniq', output_file, 'unique_' + output_file])
-            os.rename('unique_' + output_file, output_file)
+            subprocess.call(
+                [
+                    'uniq',
+                    output_file if not mix_sentences else 'shuffled_' + output_file,
+                    'unique_' + output_file
+                ]
+            )
         else:
             print('Unique is only available on Posix systems because it uses the uniq command')
 
-
-    # Finally we delete the file!
-    print('Cleaning up')
-    os.remove(output_file + '_decompressed')
 
 if __name__=='__main__':
     main(sys.argv)
