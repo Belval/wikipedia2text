@@ -148,7 +148,7 @@ def main(args):
         if os.name == 'posix':
             print('Shuffling file!')
             os.environ['LC_ALL'] = 'C'
-            subprocess.call('sort -R {} > shuffled_{}'.format(output_file, output_file), shell=True)
+            subprocess.call('sort -T . -R {} > shuffled_{}'.format(output_file, output_file), shell=True)
         else:
             print('Mix sentences is only available on Posix systems because it uses the sort command')
 
