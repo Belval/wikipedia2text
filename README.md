@@ -1,4 +1,4 @@
-# wikipedia2text
+#wikipedia2text
 A tool to convert a Wikipedia dump file into plain text
 
 ## How to use it
@@ -17,9 +17,9 @@ There are a few arguments you can use to change the "normal" behavior:
 - `-s (--split_sentences)` Will split sentences on "."
 - `-ml (--min_length)` Will not save any string for which `len(str) < x`
 
-## Where can I get the dump file?
+## Where can I get a precomputed file?
 
-See https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-meta-current.xml.bz2 or use `-dl en`
+The result of `python3 wikipedia2text.py -dl fr,en -m -u -s` can be found here http://node1.belval.org/en-fr-wiki-corpus.bz2 (It includes french!)
 
 ## How long can it take?
 
