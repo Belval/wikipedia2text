@@ -19,7 +19,7 @@ There are a few arguments you can use to change the "normal" behavior:
 
 ## Where can I get a precomputed file?
 
-The result of `python3 wikipedia2text.py -dl fr,en -m -u -s` can be found here http://node1.belval.org/en-fr-wiki-corpus.bz2 (It includes french!)
+The result of `python3 wikipedia2text.py -dl fr,en -m -u -s` can be found here http://node1.belval.org:3080/en-fr-wiki-corpus.bz2 (It includes french!)
 
 ## How long can it take?
 
